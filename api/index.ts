@@ -5,16 +5,15 @@ import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { ExpressAdapter } from "@nestjs/platform-express";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import serverlessExpress from "@vendia/serverless-express";
-import express from "express";
+import express, { Request, Response } from "express";
 
 import { AppModule } from "../src/app.module";
 import { ResponseInterceptor } from "../src/common/interceptor";
 
-let cachedServer: any;
+let cachedApp: express.Express | null = null;
 
-async function bootstrap() {
-  if (cachedServer) return cachedServer;
+async function bootstrap(): Promise<express.Express> {
+  if (cachedApp) return cachedApp;
 
   const expressApp = express();
 
@@ -53,11 +52,11 @@ async function bootstrap() {
 
   await app.init();
 
-  cachedServer = serverlessExpress({ app: expressApp });
-  return cachedServer;
+  cachedApp = expressApp;
+  return cachedApp;
 }
 
-export default async function handler(req: any, res: any) {
-  const server = await bootstrap();
-  return server(req, res);
+export default async function handler(req: Request, res: Response) {
+  const app = await bootstrap();
+  app(req, res);
 }
