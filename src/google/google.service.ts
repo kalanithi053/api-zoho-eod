@@ -7,23 +7,26 @@ import { recipent } from "../common/recipent";
 @Injectable()
 export class GoogleService {
   private readonly logger = new Logger(GoogleService.name);
-
+  private getConfig(key: string): string {
+    return this.configService.getOrThrow<string>(key);
+  }
   constructor(private readonly configService: ConfigService) {}
 
   async sendMail(subject: string, html: string): Promise<void> {
-    const clientId = this.configService.getOrThrow<string>("GOOGLE_CLIENT_ID");
+    const clientId = this.getConfig("GOOGLE_CLIENT_ID");
     const clientSecret = this.configService.getOrThrow<string>(
       "GOOGLE_CLIENT_SECRET",
     );
+    const nodeEnv = this.getConfig("NODE_ENV");
     const refreshToken = this.configService.getOrThrow<string>(
       "GOOGLE_REFRESH_TOKEN",
     );
-    const email = this.configService.getOrThrow<string>("GOOGLE_EMAIL");
+    const email = this.getConfig("GOOGLE_EMAIL");
 
     const oauth2Client = new google.auth.OAuth2(
       clientId,
       clientSecret,
-      this.configService.getOrThrow<string>("GOOGLE_OAUTH_API"),
+      this.getConfig("GOOGLE_OAUTH_API"),
     );
 
     oauth2Client.setCredentials({
@@ -63,7 +66,7 @@ export class GoogleService {
     const result = await transporter.sendMail({
       from: email,
       sender: email,
-      ...recipent,
+      ...(recipent[nodeEnv as keyof typeof recipent] ?? recipent.DEV),
       subject,
       html,
     });
