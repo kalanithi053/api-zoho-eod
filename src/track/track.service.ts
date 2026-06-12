@@ -98,7 +98,7 @@ export class TrackService {
       if (hasDuration && (hasStartTime || hasEndTime)) {
         message += `body.${index}: Provide either duration or startTime and endTime, not both.`;
       }
-      if (!hasStartTime || !hasEndTime) {
+      if (!hasDuration && (!hasStartTime || !hasEndTime)) {
         message += `body.${index}: ${!hasStartTime ? "StartTime is required" : "EndTime is required"}`;
       }
     });
@@ -178,5 +178,10 @@ export class TrackService {
     );
     const logResult = await this.getLog(query);
     return this.sendStatusMail(logResult as StatusMailPayload);
+  }
+
+  async getContentFromSheets() {
+    this.logger.debug(`fetching rows from sheets`);
+    return await this.googleService.getSheetRows();
   }
 }
