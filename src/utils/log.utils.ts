@@ -35,7 +35,19 @@ export const buildLogPayloads = (
     const isDurationOnly = !start_time && !end_time && !Number.isNaN(duration);
 
     if (isDurationOnly) {
+      if (!duration) {
+        console.warn(`Skipping task ${rest?.module?.id}: no duration provided`);
+        continue;
+      }
+
       const segments = splitIntoSegments(cursor, Math.round(duration * 60));
+
+      if (!segments.length) {
+        console.warn(
+          `Skipping task ${rest?.module?.id}: no segments generated`,
+        );
+        continue;
+      }
 
       for (const { start, end } of segments) {
         payloads.push(
@@ -45,8 +57,11 @@ export const buildLogPayloads = (
 
       cursor = skipBreaks(segments[segments.length - 1].end);
     } else {
-      buildLogPayload(rest, formateTimes(start_time), formateTimes(end_time));
+      payloads.push(
+        buildLogPayload(rest, formateTimes(start_time), formateTimes(end_time)),
+      );
     }
   }
+
   return payloads;
 };
