@@ -84,10 +84,16 @@ export class GoogleService {
     const today = new Date().toISOString().split("T")[0];
 
     const rowResult = rows
-      .filter((row) => row.length > 0 && row[2] === today)
+      .filter(
+        (row) =>
+          row.length > 0 &&
+          row[2] === today &&
+          Boolean(row[0]) &&
+          !isNaN(Number(String(row[1]).trim())),
+      )
       .map((row) => ({
         task: row[0],
-        duration: Number(row[1]),
+        duration: Number(String(row[1]).trim()),
       }));
     this.logger.debug(`respoonse from sheets ${JSON.stringify(rowResult)}`);
     return rowResult;
