@@ -62,13 +62,18 @@ export class GoogleService {
     await transporter.verify();
 
     this.logger.log("SMTP authentication successful");
-
+    const emails = recipent[nodeEnv as keyof typeof recipent] ?? recipent.DEV;
     const result = await transporter.sendMail({
-      from: email,
-      sender: email,
-      ...(recipent[nodeEnv as keyof typeof recipent] ?? recipent.DEV),
+      ...emails,
+      from: emails.sender,
       subject,
       html,
+      headers: {
+        "In-Reply-To": "",
+        References: "",
+        "Thread-Index": "",
+        "Thread-Topic": "",
+      },
     });
 
     this.logger.log(`Email sent successfully. MessageId: ${result.messageId}`);

@@ -7,8 +7,8 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 import { ConsoleLogger } from "@nestjs/common";
 import { AppModule } from "./app.module";
-import { ResponseInterceptor } from "./common/interceptor";
 import { HttpExceptionFilter } from "./common/httpExceptionFilter";
+import { ResponseInterceptor } from "./common/interceptor";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

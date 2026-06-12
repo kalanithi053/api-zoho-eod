@@ -1,10 +1,11 @@
 import { Body, Controller, Get, Post, Query } from "@nestjs/common";
 import { ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 
-import { GetTimeLogDto } from "../dto/get-time-log.dto";
+import { CreateEodDto, GetTimeLogDto } from "../dto/get-time-log.dto";
 import { StatusMailPayloadDto } from "../dto/status-mail.dto";
 import { TrackModuleDto, TrackModulePostDto } from "../dto/track.dto";
 import { TrackService } from "./track.service";
+import { TimeLogTaskDto } from "../dto/time-log-task.dto";
 
 @ApiTags("Track")
 @Controller("track")
@@ -46,5 +47,20 @@ export class TrackController {
   })
   async getLogSendIt(@Query() query: GetTimeLogDto) {
     return this.trackService.getLogSendIt(query);
+  }
+
+  @Post("post-report-mail")
+  async postLogWithTaskMail(@Body() payload: CreateEodDto) {
+    return this.trackService.postLogWithTaskMail(payload);
+  }
+
+  @Post("corn/post-report-mail")
+  @ApiOperation({ summary: "Fetch logs and send status mail" })
+  @ApiBody({
+    type: [TimeLogTaskDto],
+    description: "List of tasks with time log entries",
+  })
+  async handleCorn(@Body() payload: TimeLogTaskDto[]) {
+    return this.trackService.handleCorn(payload);
   }
 }
