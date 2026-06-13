@@ -84,7 +84,8 @@ export class TrackService {
       );
     }
     throwErrorDurations(body);
-
+    if (!body?.length)
+      throw new BadRequestException(`Task and report does not updated `);
     const taskpayload = body.map((data: TaskLogDto) => ({
       name: data.task,
       owners_and_work: { owners: [{ email: email }] },
