@@ -5,6 +5,7 @@ import { GetTimeLogDto } from "../dto/get-time-log.dto";
 import { TrackCreateDTO, TrackModuleBodyDto } from "../dto/track.dto";
 import { getLogBuiilder } from "../helper/getLog.builder";
 import { buildLogPayloads } from "../utils/log.utils";
+import { zohoTaskStatus } from "../common/status";
 
 @Injectable()
 export class ZohoService {
@@ -132,15 +133,28 @@ export class ZohoService {
 
   async postTask(body: TrackCreateDTO[], portalId: string, projectId: string) {
     const accessToken = await this.getAccessToken();
+
     const result = await Promise.all(
-      body.map((task) =>
-        this.requestZohoProject({
+      body.map(async (task) => {
+        const existingTask = await this.findTaskByName(
+          task.name,
+          portalId,
+          projectId,
+          accessToken,
+        );
+
+        if (existingTask) {
+          this.logger.log(`Task already exists: ${task.name}`);
+          return existingTask;
+        }
+
+        return this.requestZohoProject({
           url: `portal/${portalId}/projects/${projectId}/tasks`,
           method: "POST",
           data: task,
           headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
-        }),
-      ),
+        });
+      }),
     );
 
     const response = result.reduce((acc, taskRes) => {
@@ -148,8 +162,31 @@ export class ZohoService {
       acc.push({ id, name, ownerId: owners_and_work?.owners?.[0]?.zpuid });
       return acc;
     }, []);
-    this.logger.log(`Task created ${JSON.stringify(response)}`);
+
+    this.logger.log(`Tasks processed: ${JSON.stringify(response)}`);
     return response;
+  }
+
+  private async findTaskByName(
+    taskName: string,
+    portalId: string,
+    projectId: string,
+    accessToken: string,
+  ) {
+    const searchResult = await this.requestZohoProject({
+      url: `portal/${portalId}/projects/${projectId}/tasks`,
+      method: "GET",
+      headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
+    });
+
+    const tasks: any[] = searchResult?.tasks ?? [];
+    return (
+      tasks.find(
+        (t) =>
+          t.name.toLowerCase()?.trim() === taskName.toLowerCase()?.trim() &&
+          t?.status?.id !== zohoTaskStatus.lockedStatus,
+      ) ?? null
+    );
   }
 
   async getLog(query: GetTimeLogDto) {
