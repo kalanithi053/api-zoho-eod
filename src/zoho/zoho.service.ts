@@ -133,15 +133,14 @@ export class ZohoService {
 
   async postTask(body: TrackCreateDTO[], portalId: string, projectId: string) {
     const accessToken = await this.getAccessToken();
-
+    const taskList = await this.requestZohoProject({
+      url: `portal/${portalId}/projects/${projectId}/tasks`,
+      method: "GET",
+      headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
+    });
     const result = await Promise.all(
       body.map(async (task) => {
-        const existingTask = await this.findTaskByName(
-          task.name,
-          portalId,
-          projectId,
-          accessToken,
-        );
+        const existingTask = this.findTaskByName(taskList.tasks, task.name);
 
         if (existingTask) {
           this.logger.log(`Task already exists: ${task.name}`);
@@ -167,19 +166,8 @@ export class ZohoService {
     return response;
   }
 
-  private async findTaskByName(
-    taskName: string,
-    portalId: string,
-    projectId: string,
-    accessToken: string,
-  ) {
-    const searchResult = await this.requestZohoProject({
-      url: `portal/${portalId}/projects/${projectId}/tasks`,
-      method: "GET",
-      headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
-    });
-
-    const tasks: any[] = searchResult?.tasks ?? [];
+  private findTaskByName(searchResult: any[], taskName: string) {
+    const tasks: any[] = searchResult ?? [];
     return (
       tasks.find(
         (t) =>
