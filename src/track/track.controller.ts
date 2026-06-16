@@ -1,12 +1,12 @@
 import { Body, Controller, Get, Logger, Post, Query } from "@nestjs/common";
 import { ApiBody, ApiOperation, ApiTags } from "@nestjs/swagger";
 
+import { Cron } from "@nestjs/schedule";
 import { CreateEodDto, GetTimeLogDto } from "../dto/get-time-log.dto";
 import { StatusMailPayloadDto } from "../dto/status-mail.dto";
+import { TimeLogTaskDto } from "../dto/time-log-task.dto";
 import { TrackModuleDto, TrackModulePostDto } from "../dto/track.dto";
 import { TrackService } from "./track.service";
-import { TimeLogTaskDto } from "../dto/time-log-task.dto";
-import { Cron } from "@nestjs/schedule";
 
 @ApiTags("Track")
 @Controller("track")
@@ -74,9 +74,9 @@ export class TrackController {
     return this.trackService.getContentFromSheets();
   }
 
-  @Get("sheet-to-report")
+  @Get("sheet-to-reports")
   @ApiOperation({
-    summary: "Fetch project time logs from google sheet",
+    summary: "Fetch project time logs from google sheet to Trigger Mail",
   })
   async sheetToReport() {
     const rows = await this.trackService.getContentFromSheets();

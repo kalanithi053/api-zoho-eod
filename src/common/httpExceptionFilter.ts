@@ -5,7 +5,7 @@ import {
   HttpException,
   Logger,
 } from "@nestjs/common";
-import { Response, Request } from "express"; // 👈 add this
+import { Request, Response } from "express"; // 👈 add this
 import { GoogleService } from "../google/google.service";
 
 @Catch(HttpException)
@@ -23,7 +23,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const body = exception.getResponse() as any;
     const message = body?.message || "An error occurred";
 
-    if (request?.url?.includes("sheet-to-report")) {
+    if (request?.url?.includes("sheet-to-reports")) {
       const subject = `Zoho EOD APP [${status}] Error on ${request.method} ${request.url}`;
 
       const html = `
