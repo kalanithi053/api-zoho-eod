@@ -1,11 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiService } from "../common/api.service";
+import { zohoTaskStatus } from "../common/status";
 import { GetTimeLogDto } from "../dto/get-time-log.dto";
 import { TrackCreateDTO, TrackModuleBodyDto } from "../dto/track.dto";
 import { getLogBuiilder } from "../helper/getLog.builder";
 import { buildLogPayloads } from "../utils/log.utils";
-import { zohoTaskStatus } from "../common/status";
 
 @Injectable()
 export class ZohoService {
@@ -180,7 +180,7 @@ export class ZohoService {
   async getLog(query: GetTimeLogDto) {
     const { portalId, userId, startDate } = query;
     const response = await this.requestZohoProject({
-      url: `portal/${portalId}/projects/105855000004264414/timelogs`,
+      url: `portal/${portalId}/projects/${query.projectId}/timelogs`,
       method: "GET",
       params: getLogBuiilder(query),
     });
