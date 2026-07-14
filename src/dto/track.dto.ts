@@ -110,6 +110,19 @@ export class TrackCreateDTO {
   })
   @IsObject()
   owners_and_work!: { owners: { email: string }[] };
+
+  @IsOptional()
+  @IsString()
+  start_time?: string;
+
+  @IsOptional()
+  @IsString()
+  end_time?: string;
+
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 }) // ← explicitly allow decimals
+  @Type(() => Number)
+  duration?: number;
 }
 
 export class TrackModulePostDto {

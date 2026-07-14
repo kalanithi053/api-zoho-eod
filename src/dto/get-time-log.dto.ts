@@ -1,12 +1,12 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
-  IsString,
+  IsArray,
+  IsDateString,
+  IsEmail,
   IsNumber,
   IsOptional,
-  IsEmail,
-  IsDateString,
-  IsArray,
+  IsString,
   ValidateNested,
 } from "class-validator";
 
@@ -45,26 +45,29 @@ export class TaskLogDto {
 
   @ApiProperty({
     example: 4.5,
+    required: false,
   })
   @IsNumber()
   @IsOptional()
-  duration!: number;
+  duration?: number;
 
   @ApiProperty({
     description: "Start time",
     example: "01:02 AM",
+    required: false,
   })
   @IsOptional()
   @IsString()
-  startTime!: string;
+  startTime?: string;
 
   @ApiProperty({
     description: "End time",
     example: "01:03 AM",
+    required: false,
   })
   @IsOptional()
   @IsString()
-  endTime!: string;
+  endTime?: string;
 }
 
 export class CreateEodDto {

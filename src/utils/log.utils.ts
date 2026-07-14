@@ -1,12 +1,13 @@
 import { BadRequestException } from "@nestjs/common";
 import { TaskLogDto } from "../dto/get-time-log.dto";
 import { TrackModuleBodyDto } from "../dto/track.dto";
+import { decodeHtmlEntities } from "../helper/stringManipulation.helper";
 import {
   WORK_START,
-  splitIntoSegments,
   formatTime,
-  skipBreaks,
   isValidDuration,
+  skipBreaks,
+  splitIntoSegments,
 } from "./time.utils";
 
 const BASE_LOG_PAYLOAD = {
@@ -100,7 +101,22 @@ export const bulkUploadPayloadBuilder = (
   date: string,
 ) =>
   responseTask?.map((task: any) => {
-    const currentDuration = body.find((item: any) => item.task === task.name);
+    const hasLogTimes =
+      task.end_time !== undefined ||
+      task.start_time !== undefined ||
+      task.duration !== undefined;
+
+    const currentDuration = hasLogTimes
+      ? {
+          endTime: task.end_time,
+          startTime: task.start_time,
+          duration: task.duration,
+        }
+      : body.find(
+          (item: any) =>
+            decodeHtmlEntities(item.task).toLowerCase().trim() ===
+            decodeHtmlEntities(task.name).toLowerCase().trim(),
+        );
     const {
       endTime = "",
       startTime = "",

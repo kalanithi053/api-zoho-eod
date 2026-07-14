@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   CreateEodDto,
   GetTimeLogDto,
   TaskLogDto,
-  // TaskLogDto,
 } from "../dto/get-time-log.dto";
+import { TimeLogTaskDto } from "../dto/time-log-task.dto";
 import {
+  TrackCreateDTO,
   TrackModuleBodyDto,
   TrackModuleDto,
   TrackModulePostDto,
@@ -14,16 +16,13 @@ import { GoogleService } from "../google/google.service";
 import { sendResponse } from "../helper/getLog.builder";
 import { generateSubject } from "../helper/stringManipulation.helper";
 import { StatusMailPayload } from "../interfaces/report.interface";
-import { htmlGenerator } from "../utils/mail-template";
-import { ZohoService } from "../zoho/zoho.service";
-import { ConfigService } from "@nestjs/config";
 import {
   buildLogPayloads,
   bulkUploadPayloadBuilder,
   throwErrorDurations,
 } from "../utils/log.utils";
-import { format } from "date-fns";
-import { TimeLogTaskDto } from "../dto/time-log-task.dto";
+import { htmlGenerator } from "../utils/mail-template";
+import { ZohoService } from "../zoho/zoho.service";
 
 @Injectable()
 export class TrackService {
@@ -86,9 +85,12 @@ export class TrackService {
     throwErrorDurations(body);
     if (!body?.length)
       throw new BadRequestException(`Task and report does not updated `);
-    const taskpayload = body.map((data: TaskLogDto) => ({
+    const taskpayload: TrackCreateDTO[] = body.map((data: TaskLogDto) => ({
       name: data.task,
       owners_and_work: { owners: [{ email: email }] },
+      duration: data.duration,
+      start_time: data.startTime,
+      end_time: data.endTime,
     }));
     const responseTask = await this.postTask({
       portalId: this.portalId,
@@ -111,7 +113,7 @@ export class TrackService {
 
   async handleAutomateReportGenerator(body: TimeLogTaskDto[]) {
     const projectDetail: any = await this.zohoService.fetchCurrentProject();
-    const date = format(new Date(), "yyyy-MM-dd");
+    const date = "2026-07-13";
     this.logger.debug(`logger date ${date} ${JSON.stringify(body)}`);
     if (!projectDetail.id) {
       throw new BadRequestException(

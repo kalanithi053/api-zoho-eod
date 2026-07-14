@@ -5,6 +5,7 @@ import { zohoTaskStatus } from "../common/status";
 import { GetTimeLogDto } from "../dto/get-time-log.dto";
 import { TrackCreateDTO, TrackModuleBodyDto } from "../dto/track.dto";
 import { getLogBuiilder } from "../helper/getLog.builder";
+import { decodeHtmlEntities } from "../helper/stringManipulation.helper";
 import { buildLogPayloads } from "../utils/log.utils";
 
 @Injectable()
@@ -138,23 +139,25 @@ export class ZohoService {
       method: "GET",
       headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
     });
-    const result = await Promise.all(
-      body.map(async (task) => {
-        const existingTask = this.findTaskByName(taskList.tasks, task.name);
+    const result = [];
+    for (const task of body) {
+      const existingTask = this.findTaskByName(taskList.tasks, task.name);
 
-        if (existingTask) {
-          this.logger.log(`Task already exists: ${task.name}`);
-          return existingTask;
-        }
+      const { duration, end_time, start_time, ...rest } = task;
+      if (existingTask) {
+        this.logger.log(`Task already exists: ${task.name}`);
+        result.push({ ...existingTask, duration, end_time, start_time });
+        continue;
+      }
 
-        return this.requestZohoProject({
-          url: `portal/${portalId}/projects/${projectId}/tasks`,
-          method: "POST",
-          data: task,
-          headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
-        });
-      }),
-    );
+      const res = await this.requestZohoProject({
+        url: `portal/${portalId}/projects/${projectId}/tasks`,
+        method: "POST",
+        data: rest,
+        headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
+      });
+      result.push({ ...res, duration, end_time, start_time });
+    }
 
     const response = result.reduce((acc, taskRes) => {
       const { id, name, owners_and_work } = taskRes;
@@ -171,7 +174,8 @@ export class ZohoService {
     return (
       tasks.find(
         (t) =>
-          t.name.toLowerCase()?.trim() === taskName.toLowerCase()?.trim() &&
+          decodeHtmlEntities(t.name).toLowerCase()?.trim() ===
+            decodeHtmlEntities(taskName).toLowerCase()?.trim() &&
           t?.status?.id !== zohoTaskStatus.lockedStatus,
       ) ?? null
     );
