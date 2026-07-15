@@ -113,7 +113,7 @@ export class TrackService {
 
   async handleAutomateReportGenerator(body: TimeLogTaskDto[]) {
     const projectDetail: any = await this.zohoService.fetchCurrentProject();
-    const date = "2026-07-13";
+    const date = new Date().toISOString().split("T")[0];
     this.logger.debug(`logger date ${date} ${JSON.stringify(body)}`);
     if (!projectDetail.id) {
       throw new BadRequestException(

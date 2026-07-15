@@ -84,7 +84,7 @@ export class GoogleService {
     });
 
     const [_header, ...rows] = (response.data.values as string[][]) ?? [];
-    const today = "2026-07-13";
+    const today = new Date().toISOString().split("T")[0];
 
     const rowResult = rows
       .filter(
